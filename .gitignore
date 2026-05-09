@@ -1,0 +1,14 @@
+# 环境与缓存文件
+.venv/
+__pycache__/
+*.pyc
+.idea/
+
+# 敏感信息与本地数据
+.env
+data/
+*.pdf
+*.txt
+
+# LlamaIndex 缓存
+storage/
