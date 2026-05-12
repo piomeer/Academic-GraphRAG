@@ -8,6 +8,8 @@ os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = '1'
 
 from llama_index.core import SimpleDirectoryReader, PropertyGraphIndex, Settings
 from llama_index.graph_stores.neo4j import Neo4jPropertyGraphStore
+from utils.memory_safe_disambiguator import AsyncEntityDisambiguator
+import asyncio
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.llms.openai_like import OpenAILike
 from llama_index.core.indices.property_graph import SimpleLLMPathExtractor
@@ -29,12 +31,24 @@ Settings.llm = OpenAILike(
 )
 Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-zh-v1.5")
 
-# 2. 连接 Neo4j
-graph_store = Neo4jPropertyGraphStore(
+# 2. 连接 Neo4j 并注入拦截器
+class DisambiguatorWrapper:
+    def __init__(self, store):
+        self.store = store
+        self.disambiguator = AsyncEntityDisambiguator()
+
+    def upsert_nodes(self, nodes, **kwargs):
+        nodes = asyncio.run(self.disambiguator.process_nodes_in_batches(nodes))
+        return self.store.upsert_nodes(nodes, **kwargs)
+    
+    def __getattr__(self, name):
+        return getattr(self.store, name)
+
+graph_store = DisambiguatorWrapper(Neo4jPropertyGraphStore(
     username=os.getenv("NEO4J_USERNAME", "neo4j"),
     password=os.getenv("NEO4J_PASSWORD"),
     url=os.getenv("NEO4J_URI", "bolt://127.0.0.1:7687"),
-)
+))
 
 # 3. 核心黑科技：跨语言实体抽取器
 kg_extractor = SimpleLLMPathExtractor(
