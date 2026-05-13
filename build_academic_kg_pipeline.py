@@ -47,11 +47,14 @@ class DisambiguatorWrapper:
     def upsert_nodes(self, nodes, **kwargs):
         nodes = asyncio.run(self.disambiguator.process_nodes_in_batches(nodes))
         result = self.store.upsert_nodes(nodes, **kwargs)
-        # Force label update
+        # Force label update using specific node IDs to avoid global scan
         try:
-            self.store.client.execute_query(
-                f"MATCH (n) WHERE NOT n:{target_label} AND NOT n:Chunk SET n:{target_label}"
-            )
+            node_ids = [n.id_ for n in nodes]
+            if node_ids:
+                self.store.client.execute_query(
+                    f"MATCH (n) WHERE n.id IN $node_ids AND NOT n:Chunk SET n:{target_label}",
+                    node_ids=node_ids
+                )
         except Exception as e:
             print(f"Label update warning: {e}")
         return result
