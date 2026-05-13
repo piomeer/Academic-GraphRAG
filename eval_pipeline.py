@@ -28,6 +28,8 @@ class KGEvaluator:
     def close(self):
         self.driver.close()
 
+import json
+
 def evaluate_top_k_recall(eval_dataset: list, k: int = 5) -> dict:
     evaluator = KGEvaluator()
     results = {"RawEntity": 0, "CleanEntity": 0}
@@ -38,9 +40,10 @@ def evaluate_top_k_recall(eval_dataset: list, k: int = 5) -> dict:
         
         for label in ["RawEntity", "CleanEntity"]:
             retrieved_texts = evaluator.custom_retrieve(query, label, k)
+            combined_text = " ".join(retrieved_texts).lower()
             
-            # 命中判定：如果检索到的文本中包含了任意一个预期实体
-            hit = any(entity in " ".join(retrieved_texts) for entity in expected)
+            # 命中判定：忽略大小写的子串包含
+            hit = any(entity.lower() in combined_text for entity in expected)
             if hit:
                 results[label] += 1
                 
@@ -50,13 +53,9 @@ def evaluate_top_k_recall(eval_dataset: list, k: int = 5) -> dict:
     return {label: f"{(count / total) * 100:.2f}%" for label, count in results.items()}
 
 if __name__ == "__main__":
-    # Mock 数据
-    mock_dataset = [
-        {"query": "RotatE", "expected_entities": ["RotatE", "Knowledge Graph"]},
-        {"query": "TransE", "expected_entities": ["TransE", "Embedding"]},
-        {"query": "GNN", "expected_entities": ["Graph Neural Network"]}
-    ]
+    with open("data/eval_dataset.json", "r", encoding="utf-8") as f:
+        dataset = json.load(f)
     
     print("开始执行 Top-k 评测...")
-    recall_results = evaluate_top_k_recall(mock_dataset, k=5)
+    recall_results = evaluate_top_k_recall(dataset, k=5)
     print(f"评测结果: {recall_results}")

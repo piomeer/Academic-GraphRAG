@@ -12,9 +12,16 @@ from utils.memory_safe_disambiguator import AsyncEntityDisambiguator
 import asyncio
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.llms.openai_like import OpenAILike
+import argparse
 from llama_index.core.indices.property_graph import SimpleLLMPathExtractor
 
-print("🚀 正在启动跨语言 GraphRAG 学术处理引擎...\n")
+parser = argparse.ArgumentParser(description="Academic KG Pipeline")
+parser.add_argument("--mode", choices=["raw", "clean"], required=True, help="Mode for node labels")
+args = parser.parse_args()
+
+target_label = "RawEntity" if args.mode == "raw" else "CleanEntity"
+
+print(f"🚀 正在启动跨语言 GraphRAG 学术处理引擎 (Mode: {args.mode}, Label: {target_label})...\n")
 
 # 1. 唤醒 DeepSeek 大脑
 API_KEY = os.getenv("DEEPSEEK_API_KEY")
@@ -39,7 +46,15 @@ class DisambiguatorWrapper:
 
     def upsert_nodes(self, nodes, **kwargs):
         nodes = asyncio.run(self.disambiguator.process_nodes_in_batches(nodes))
-        return self.store.upsert_nodes(nodes, **kwargs)
+        result = self.store.upsert_nodes(nodes, **kwargs)
+        # Force label update
+        try:
+            self.store.client.execute_query(
+                f"MATCH (n) WHERE NOT n:{target_label} AND NOT n:Chunk SET n:{target_label}"
+            )
+        except Exception as e:
+            print(f"Label update warning: {e}")
+        return result
     
     def __getattr__(self, name):
         return getattr(self.store, name)
