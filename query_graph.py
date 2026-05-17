@@ -17,7 +17,7 @@ API_KEY = os.getenv("DEEPSEEK_API_KEY")  # 请替换为你的真实 Key
 API_BASE = "https://api.deepseek.com/v1"
 
 Settings.llm = OpenAILike(
-    model="deepseek-chat",
+    model="deepseek-v4-pro",
     api_key=API_KEY,
     api_base=API_BASE,
     is_chat_model=True,

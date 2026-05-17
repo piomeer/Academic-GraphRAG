@@ -1,0 +1,25 @@
+{"type":"entity","name":"Academic-GraphRAG","entityType":"Project","observations":["[2026-05-17] 面向复杂学术文献的企业级 GraphRAG 落地架构","[2026-05-17] 核心技术：算力解耦、跨语言图谱构建、双路混合检索","[2026-05-17] 解决传统 RAG 在长文本多跳推理中的幻觉问题","[2026-05-17] 使用 DeepSeek-Chat 云端推理 + BAAI/bge-small-zh-v1.5 本地向量化","[2026-05-17] [DEPRECATED] 旧记录：使用 DeepSeek-Chat 云端推理","[2026-05-17] 推理模型实际为 DeepSeek-v4-pro，通过 OpenAILike 接口接入"]}
+{"type":"entity","name":"LlamaIndex","entityType":"Framework","observations":["[2026-05-17] 项目中唯一的 RAG 框架选型","[2026-05-17] 使用 PropertyGraphIndex 构建知识图谱","[2026-05-17] 使用 ReActAgent 编排智能体","[2026-05-17] 使用 FunctionTool 封装外部工具"]}
+{"type":"entity","name":"Neo4jPropertyGraphStore","entityType":"GraphStore","observations":["[2026-05-17] 图数据库持久化接口，来自 llama_index.graph_stores.neo4j","[2026-05-17] 连接参数：bolt://127.0.0.1:7687","[2026-05-17] 凭证从 .env 加载，需安装 Neo4j Desktop 与 APOC 插件","[2026-05-17] 被 DisambiguatorWrapper 封装以增加实体消歧与标签功能"]}
+{"type":"entity","name":"build_academic_kg_pipeline.py","entityType":"Pipeline","observations":["[2026-05-17] 进阶版 KG 构建流水线入口","[2026-05-17] 支持 raw/clean 双模式控制节点标签","[2026-05-17] 集成 AsyncEntityDisambiguator 进行实体消歧","[2026-05-17] 使用 SimpleLLMPathExtractor 实现跨语言三元组抽取（英文→中文）"]}
+{"type":"entity","name":"AsyncEntityDisambiguator","entityType":"Utility","observations":["[2026-05-17] 位于 utils/memory_safe_disambiguator.py","[2026-05-17] 异步分批处理节点（默认50个一批），带超时保护","[2026-05-17] 每次处理后强制 gc.collect() 回收内存","[2026-05-17] 使用 asyncio.Semaphore(10) 控制并发"]}
+{"type":"entity","name":"DisambiguatorWrapper","entityType":"Interceptor","observations":["[2026-05-17] 封装 Neo4jPropertyGraphStore 的代理类","[2026-05-17] 拦截 upsert_nodes 操作，注入实体消歧","[2026-05-17] 自动为节点打 RawEntity 或 CleanEntity 标签"]}
+{"type":"entity","name":"arxiv_fetcher","entityType":"ExternalTool","observations":["[2026-05-17] 封装自 tools/arxiv_fetcher.py","[2026-05-17] 使用 arxiv Python 包查询 ArXiv 学术论文","[2026-05-17] 包装为 LlamaIndex FunctionTool，被 ReActAgent 调用"]}
+{"type":"entity","name":"ReActAgent","entityType":"Agent","observations":["[2026-05-17] 来自 llama_index.core.agent","[2026-05-17] 集成 arxiv_fetcher 工具，可自动判断是否需要外部检索","[2026-05-17] 通过 verbose=True 展示思考过程"]}
+{"type":"entity","name":"OpenAILike","entityType":"LLMInterface","observations":["[2026-05-17] 用于接入 DeepSeek-Chat 大模型","[2026-05-17] API Base: https://api.deepseek.com/v1","[2026-05-17] is_chat_model=True, context_window=8192, max_tokens=2048","[2026-05-17] [DEPRECATED] 旧记录：用于接入 DeepSeek-Chat 模型","[2026-05-17] 实际连接的底层模型为 DeepSeek-v4-pro","[2026-05-17] model 参数值应为 'deepseek-chat' 指向 DeepSeek-v4-pro"]}
+{"type":"entity","name":"HuggingFaceEmbedding","entityType":"EmbeddingModel","observations":["[2026-05-17] 模型：BAAI/bge-small-zh-v1.5","[2026-05-17] 通过 HuggingFace 本地加载","[2026-05-17] 镜像源：https://hf-mirror.com（环境变量 HF_ENDPOINT）"]}
+{"type":"entity","name":"MCP Memory Server","entityType":"MemorySystem","observations":["[2026-05-17] 使用 @modelcontextprotocol/server-memory","[2026-05-17] 持久化文件：E:\\data\\GraphRAG\\academic-memory.json","[2026-05-17] 提供 L2 知识图谱层的实体的创建/查询/关系管理能力"]}
+{"type":"relation","from":"Academic-GraphRAG","to":"LlamaIndex","relationType":"uses"}
+{"type":"relation","from":"Academic-GraphRAG","to":"Neo4jPropertyGraphStore","relationType":"uses"}
+{"type":"relation","from":"Academic-GraphRAG","to":"OpenAILike","relationType":"uses"}
+{"type":"relation","from":"Academic-GraphRAG","to":"HuggingFaceEmbedding","relationType":"uses"}
+{"type":"relation","from":"Academic-GraphRAG","to":"MCP Memory Server","relationType":"uses"}
+{"type":"relation","from":"Academic-GraphRAG","to":"build_academic_kg_pipeline.py","relationType":"contains"}
+{"type":"relation","from":"Academic-GraphRAG","to":"arxiv_fetcher","relationType":"contains"}
+{"type":"relation","from":"build_academic_kg_pipeline.py","to":"AsyncEntityDisambiguator","relationType":"integrates"}
+{"type":"relation","from":"build_academic_kg_pipeline.py","to":"DisambiguatorWrapper","relationType":"integrates"}
+{"type":"relation","from":"build_academic_kg_pipeline.py","to":"Neo4jPropertyGraphStore","relationType":"writes_to"}
+{"type":"relation","from":"DisambiguatorWrapper","to":"Neo4jPropertyGraphStore","relationType":"wraps"}
+{"type":"relation","from":"arxiv_fetcher","to":"ReActAgent","relationType":"called_by"}
+{"type":"relation","from":"OpenAILike","to":"DeepSeek-Chat","relationType":"provides_access_to"}
+{"type":"relation","from":"HuggingFaceEmbedding","to":"BAAI/bge-small-zh-v1.5","relationType":"loads_model"}

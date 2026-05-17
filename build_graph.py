@@ -16,7 +16,7 @@ API_KEY = os.getenv("DEEPSEEK_API_KEY")
 API_BASE = "https://api.deepseek.com"
 
 llm = OpenAI(
-    model="deepseek-chat",
+    model="deepseek-v4-pro",
     api_key=API_KEY,
     api_base=API_BASE,
     max_tokens=2048
